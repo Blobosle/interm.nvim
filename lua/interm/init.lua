@@ -1,7 +1,7 @@
 -- init.lua
 
 -- Load term.lua
-require("mytermplugin.term")
+require("interm.term")
 
 -- Key mappings
 vim.api.nvim_set_keymap('n', 'Q', ':lua require("mytermplugin.term").cd_and_open_term()<CR>', { noremap = true, silent = true })
