@@ -9,6 +9,8 @@ function M.cd_and_open_term()
     vim.cmd('autocmd TermClose * ++once lua vim.cmd("cd ' .. original_dir .. '")')
 end
 
+local term_win_id
+
 function M.cd_and_open_term_mod()
     local original_win = vim.api.nvim_get_current_win()
     local original_dir = vim.fn.getcwd()
@@ -18,6 +20,7 @@ function M.cd_and_open_term_mod()
     vim.cmd('term')
 
     local new_win = vim.api.nvim_get_current_win()
+    term_win_id = vim.api.nvim_get_current_win()
     vim.api.nvim_set_current_win(original_win)
     vim.cmd('lcd ' .. original_dir)
     vim.api.nvim_set_current_win(new_win)
@@ -78,20 +81,16 @@ vim.api.nvim_exec([[
 
 vim.api.nvim_create_autocmd("TermClose", {
     pattern = "*",
-    callback = function(args)
+    callback = function()
         vim.schedule(function()
-            if vim.api.nvim_win_is_valid(args.buf) then
-                local success, err = pcall(vim.api.nvim_set_current_win, args.buf)
-                if not success then
-                    vim.notify("Error setting current window: " .. err, vim.log.levels.ERROR)
-                end
+            if term_win_id and vim.api.nvim_win_is_valid(term_win_id) then
+                vim.api.nvim_set_current_win(term_win_id)
             else
-                vim.notify("Window no longer valid.", vim.log.levels.WARN)
+                vim.notify("Term window already closed.", vim.log.levels.WARN)
             end
         end)
     end,
 })
-
 
 vim.api.nvim_create_autocmd("TermEnter", {
     pattern = "*",
