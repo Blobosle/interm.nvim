@@ -1,16 +1,10 @@
--- interm/init.lua
+-- init.lua
 
 local M = {}
 
 M.setup = function()
-    -- Attempt to load term.lua and log the result
-    local term_ok, term = pcall(require, "interm.term")
-    if not term_ok then
-        print("Failed to load interm.term:", term)
-        return
-    else
-        print("Loaded interm.term successfully")
-    end
+    -- Load term.lua
+    require("interm.term")
 
     -- Key mappings
     vim.api.nvim_set_keymap('n', 'Q', ':lua require("interm.term").cd_and_open_term()<CR>', { noremap = true, silent = true })
