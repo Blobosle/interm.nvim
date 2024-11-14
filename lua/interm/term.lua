@@ -18,21 +18,11 @@ _G.cd_and_open_term_mod = function()
     vim.cmd('term')
 
     local new_win = vim.api.nvim_get_current_win()
-    local term_bufnr = vim.api.nvim_get_current_buf()
-
     vim.api.nvim_set_current_win(original_win)
     vim.cmd('lcd ' .. original_dir)
     vim.api.nvim_set_current_win(new_win)
 
-    vim.api.nvim_create_autocmd("TermClose", {
-        buffer = term_bufnr,
-        once = true,
-        callback = function()
-            if vim.api.nvim_win_is_valid(new_win) then
-                vim.api.nvim_set_current_win(new_win)
-            end
-        end,
-    })
+    vim.cmd('autocmd TermClose * ++once lua vim.api.nvim_set_current_win(' .. new_win .. ')')
 end
 
 -- Disable line numbers in terminal mode
