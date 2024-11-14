@@ -1,24 +1,18 @@
 -- term.lua
 
-local M = {}
-
-function M.cd_and_open_term()
+-- Opens a shell instance in the edited directory (whole screen)
+_G.cd_and_open_term = function()
     local original_dir = vim.fn.getcwd()
-    vim.cmd("cd " .. vim.fn.expand("%:p:h"))
-    vim.cmd("term")
-    vim.api.nvim_create_autocmd("TermClose", {
-        once = true,
-        callback = function()
-            vim.cmd("cd " .. original_dir)
-        end,
-    })
+    vim.cmd('cd %:p:h')
+    vim.cmd('term')
+    vim.cmd('autocmd TermClose * ++once lua vim.cmd("cd ' .. original_dir .. '")')
 end
 
-function M.cd_and_open_term_mod()
+-- Opens a shell instance in the edited directory (split screen)
+_G.cd_and_open_term_mod = function()
     local original_win = vim.api.nvim_get_current_win()
     local original_dir = vim.fn.getcwd()
 
-    -- Set local directory to the current file's directory and open terminal in a vertical split
     vim.cmd('lcd %:p:h')
     vim.cmd('vsplit')
     vim.cmd('term')
@@ -26,62 +20,66 @@ function M.cd_and_open_term_mod()
     local new_win = vim.api.nvim_get_current_win()
     local term_bufnr = vim.api.nvim_get_current_buf()
 
-    -- Restore the original window and directory
     vim.api.nvim_set_current_win(original_win)
     vim.cmd('lcd ' .. original_dir)
     vim.api.nvim_set_current_win(new_win)
 
-    -- Create an autocmd limited to this terminal buffer to handle window focus on close
     vim.api.nvim_create_autocmd("TermClose", {
-        buffer = term_bufnr,  -- Limit to the terminal buffer
-        once = true,          -- Run only once
+        buffer = term_bufnr,
+        once = true,
         callback = function()
             if vim.api.nvim_win_is_valid(new_win) then
                 vim.api.nvim_set_current_win(new_win)
-            else
-                vim.notify("The terminal window was already closed.", vim.log.levels.WARN)
             end
         end,
     })
 end
 
-function M.DisableLineNumbers()
+-- Disable line numbers in terminal mode
+function DisableLineNumbers()
     vim.wo.number = false
     vim.wo.relativenumber = false
 end
 
-function M.EnableLineNumbers()
+-- Enable line numbers in normal mode
+function EnableLineNumbers()
     vim.wo.number = true
     vim.wo.relativenumber = true
 end
 
-function M.SetTermStatusLineHighlight()
+-- Autocommand to toggle line numbers in terminal mode
+vim.api.nvim_exec([[
+    augroup TermNumberToggle
+        autocmd!
+        autocmd TermOpen * lua DisableLineNumbers()
+        autocmd TermClose * lua EnableLineNumbers()
+    augroup END
+]], false)
+
+-- Custom highlight group for terminal windows
+vim.cmd('hi TermNormal guibg=#1e1e1e guifg=white ctermbg=0 ctermfg=white')
+
+-- Set winhighlight for terminal windows
+vim.api.nvim_exec([[
+    augroup TermColorschemeToggle
+        autocmd!
+        autocmd TermOpen * setlocal winhighlight=Normal:TermNormal
+    augroup END
+]], false)
+
+-- Hide status line in terminal
+vim.cmd('hi TermStatusLine guibg=#1e1e1e guifg=white ctermbg=0 ctermfg=white')
+function _G.SetTermStatusLineHighlight()
     vim.wo.statusline = '%#TermStatusLine#' .. vim.o.statusline
 end
-
--- Autocommands
 vim.api.nvim_exec([[
-  augroup TermNumberToggle
-    autocmd!
-    autocmd TermOpen * lua require("interm.term").DisableLineNumbers()
-    autocmd TermClose * lua require("interm.term").EnableLineNumbers()
-  augroup END
+    augroup TermStatusLineHighlight
+        autocmd!
+        autocmd TermOpen * lua _G.SetTermStatusLineHighlight()
+    augroup END
 ]], false)
 
-vim.api.nvim_exec([[
-  augroup TermColorschemeToggle
-    autocmd!
-    autocmd TermOpen * setlocal winhighlight=Normal:TermNormal
-  augroup END
-]], false)
-
-vim.api.nvim_exec([[
-  augroup TermStatusLineHighlight
-    autocmd!
-    autocmd TermOpen * lua require("interm.term").SetTermStatusLineHighlight()
-  augroup END
-]], false)
-
+-- Automatically close terminal buffer without confirmation
 vim.api.nvim_create_autocmd("TermClose", {
     pattern = "*",
     callback = function(args)
@@ -96,19 +94,16 @@ vim.api.nvim_create_autocmd("TermClose", {
     end,
 })
 
+-- Adjust timeoutlen when entering/leaving terminal mode
 vim.api.nvim_create_autocmd("TermEnter", {
     pattern = "*",
     callback = function()
         vim.opt.timeoutlen = 200
     end,
 })
-
 vim.api.nvim_create_autocmd("TermLeave", {
     pattern = "*",
     callback = function()
         vim.opt.timeoutlen = 1000
     end,
 })
-
-return M
-
