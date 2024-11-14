@@ -26,14 +26,16 @@ _G.cd_and_open_term_mod = function()
         buffer = vim.api.nvim_get_current_buf(),  -- Limit to the terminal buffer
         once = true,  -- Run only once
         callback = function()
-            -- Check if the window is still valid before setting it
-            if vim.api.nvim_win_is_valid(new_win) then
-                vim.api.nvim_set_current_win(new_win)
-            end
+            vim.schedule(function()
+                -- Check if the window is still valid before setting it
+                if vim.api.nvim_win_is_valid(new_win) then
+                    vim.api.nvim_set_current_win(new_win)
+                end
+            end)
         end,
     })
 end
-
+    
 -- Disable line numbers in terminal mode
 function DisableLineNumbers()
     vim.wo.number = false
