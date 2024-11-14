@@ -61,20 +61,37 @@ vim.api.nvim_exec([[
     autocmd TermOpen * lua require("interm.term").SetTermStatusLineHighlight()
   augroup END
 ]], false)
+--
+-- vim.api.nvim_create_autocmd("TermClose", {
+--     pattern = "*",
+--     callback = function(args)
+--         vim.schedule(function()
+--             if vim.api.nvim_buf_is_valid(args.buf) then
+--                 local success, err = pcall(vim.api.nvim_buf_delete, args.buf, { force = true })
+--                 if not success then
+--                     vim.notify("Error deleting buffer: " .. err, vim.log.levels.ERROR)
+--                 end
+--             end
+--         end)
+--     end,
+-- })
 
 vim.api.nvim_create_autocmd("TermClose", {
     pattern = "*",
     callback = function(args)
         vim.schedule(function()
-            if vim.api.nvim_buf_is_valid(args.buf) then
-                local success, err = pcall(vim.api.nvim_buf_delete, args.buf, { force = true })
+            if vim.api.nvim_win_is_valid(args.buf) then
+                local success, err = pcall(vim.api.nvim_set_current_win, args.buf)
                 if not success then
-                    vim.notify("Error deleting buffer: " .. err, vim.log.levels.ERROR)
+                    vim.notify("Error setting current window: " .. err, vim.log.levels.ERROR)
                 end
+            else
+                vim.notify("Window no longer valid.", vim.log.levels.WARN)
             end
         end)
     end,
 })
+
 
 vim.api.nvim_create_autocmd("TermEnter", {
     pattern = "*",
