@@ -18,23 +18,29 @@ function M.cd_and_open_term_mod()
     local original_win = vim.api.nvim_get_current_win()
     local original_dir = vim.fn.getcwd()
 
-    vim.cmd("lcd " .. vim.fn.expand("%:p:h"))
-    vim.cmd("vsplit")
-    vim.cmd("term")
+    -- Set local directory to the current file's directory and open terminal in a vertical split
+    vim.cmd('lcd %:p:h')
+    vim.cmd('vsplit')
+    vim.cmd('term')
 
     local new_win = vim.api.nvim_get_current_win()
+    local term_bufnr = vim.api.nvim_get_current_buf()
+
+    -- Restore the original window and directory
     vim.api.nvim_set_current_win(original_win)
-    vim.cmd("lcd " .. original_dir)
+    vim.cmd('lcd ' .. original_dir)
     vim.api.nvim_set_current_win(new_win)
 
+    -- Create an autocmd limited to this terminal buffer to handle window focus on close
     vim.api.nvim_create_autocmd("TermClose", {
-        once = true,
+        buffer = term_bufnr,  -- Limit to the terminal buffer
+        once = true,          -- Run only once
         callback = function()
-            if not vim.api.nvim_win_is_valid(new_win) then
+            if vim.api.nvim_win_is_valid(new_win) then
+                vim.api.nvim_set_current_win(new_win)
+            else
                 vim.notify("The terminal window was already closed.", vim.log.levels.WARN)
-                return  -- Early return if the window is invalid
             end
-            vim.api.nvim_set_current_win(new_win)
         end,
     })
 end
