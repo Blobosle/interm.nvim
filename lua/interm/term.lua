@@ -18,21 +18,16 @@ function M.cd_and_open_term_mod()
     local original_win = vim.api.nvim_get_current_win()
     local original_dir = vim.fn.getcwd()
 
-    vim.cmd("lcd " .. vim.fn.expand("%:p:h"))
-    vim.cmd("vsplit")
-    vim.cmd("term")
+    vim.cmd('lcd %:p:h')
+    vim.cmd('vsplit')
+    vim.cmd('term')
 
     local new_win = vim.api.nvim_get_current_win()
     vim.api.nvim_set_current_win(original_win)
-    vim.cmd("lcd " .. original_dir)
+    vim.cmd('lcd ' .. original_dir)
     vim.api.nvim_set_current_win(new_win)
 
-    vim.api.nvim_create_autocmd("TermClose", {
-        once = true,
-        callback = function()
-            vim.api.nvim_set_current_win(new_win)
-        end,
-    })
+    vim.cmd('autocmd TermClose * ++once lua vim.api.nvim_set_current_win(' .. new_win .. ')')
 end
 
 function M.DisableLineNumbers()
