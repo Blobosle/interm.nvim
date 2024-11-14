@@ -1,4 +1,5 @@
 # 💾  interm.nvim
+<img width="1728" alt="imagen" src="https://github.com/user-attachments/assets/ecb65fad-0cde-4187-b555-b0ec416dabf2">
 
 `interm.nvim` is a Neovim plugin that provides convenient functions and mappings for managing terminal windows, directory changes, and buffer behavior. It includes features for toggling terminal behavior, adjusting line numbers, and setting custom highlights for terminal windows.
 
