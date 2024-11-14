@@ -30,11 +30,11 @@ function M.cd_and_open_term_mod()
     vim.api.nvim_create_autocmd("TermClose", {
         once = true,
         callback = function()
-            if vim.api.nvim_win_is_valid(new_win) then  -- Check if new_win is still valid
-                vim.api.nvim_set_current_win(new_win)
-            else
-                vim.notify("The terminal window was closed.", vim.log.levels.WARN)
+            if not vim.api.nvim_win_is_valid(new_win) then
+                vim.notify("The terminal window was already closed.", vim.log.levels.WARN)
+                return  -- Early return if the window is invalid
             end
+            vim.api.nvim_set_current_win(new_win)
         end,
     })
 end
