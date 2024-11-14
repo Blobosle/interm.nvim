@@ -1,4 +1,4 @@
-# 💾  interm.nvim
+# interm.nvim
 <img width="1728" alt="imagen" src="https://github.com/user-attachments/assets/ecb65fad-0cde-4187-b555-b0ec416dabf2">
 
 ## About
