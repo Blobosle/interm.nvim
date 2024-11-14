@@ -8,7 +8,6 @@ _G.cd_and_open_term = function()
     vim.cmd('autocmd TermClose * ++once lua vim.cmd("cd ' .. original_dir .. '")')
 end
 
--- Opens a shell instance in the edited directory (split screen)
 _G.cd_and_open_term_mod = function()
     local original_win = vim.api.nvim_get_current_win()
     local original_dir = vim.fn.getcwd()
@@ -18,22 +17,25 @@ _G.cd_and_open_term_mod = function()
     vim.cmd('term')
 
     local new_win = vim.api.nvim_get_current_win()
+    local term_bufnr = vim.api.nvim_get_current_buf()
+
     vim.api.nvim_set_current_win(original_win)
     vim.cmd('lcd ' .. original_dir)
     vim.api.nvim_set_current_win(new_win)
 
-    vim.api.nvim_create_autocmd("TermClose", {
-        buffer = vim.api.nvim_get_current_buf(),  -- Limit to the terminal buffer
-        once = true,  -- Run only once
-        callback = function()
-            vim.schedule(function()
-                -- Check if the window is still valid before setting it
+    -- Only register the autocommand if the terminal window is still valid
+    if vim.api.nvim_win_is_valid(new_win) then
+        vim.api.nvim_create_autocmd("TermClose", {
+            buffer = term_bufnr,  -- Limit to the terminal buffer
+            once = true,  -- Run only once
+            callback = function()
+                -- Check again if the window is still valid
                 if vim.api.nvim_win_is_valid(new_win) then
-                    vim.api.nvim_set_current_win(new_win)
+                    pcall(vim.api.nvim_set_current_win, new_win)
                 end
-            end)
-        end,
-    })
+            end,
+        })
+    end
 end
     
 -- Disable line numbers in terminal mode
