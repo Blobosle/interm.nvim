@@ -8,40 +8,22 @@ _G.cd_and_open_term = function()
     vim.cmd('autocmd TermClose * ++once lua vim.cmd("cd ' .. original_dir .. '")')
 end
 
-_G.setup_term_plugin = function()
-    _G.cd_and_open_term_mod = function()
-        vim.defer_fn(function()
-            local original_win = vim.api.nvim_get_current_win()
-            local original_dir = vim.fn.getcwd()
+-- Opening shell instance on the edited directory (split screen)
+_G.cd_and_open_term_mod = function()
+    local original_win = vim.api.nvim_get_current_win()
+    local original_dir = vim.fn.getcwd()
 
-            vim.cmd('lcd %:p:h')
-            vim.cmd('vsplit')
-            vim.cmd('term')
+    vim.cmd('lcd %:p:h')
+    vim.cmd('vsplit')
+    vim.cmd('term')
 
-            local new_win = vim.api.nvim_get_current_win()
-            local term_bufnr = vim.api.nvim_get_current_buf()
+    local new_win = vim.api.nvim_get_current_win()
+    vim.api.nvim_set_current_win(original_win)
+    vim.cmd('lcd ' .. original_dir)
+    vim.api.nvim_set_current_win(new_win)
 
-            vim.api.nvim_set_current_win(original_win)
-            vim.cmd('lcd ' .. original_dir)
-            vim.api.nvim_set_current_win(new_win)
-
-            -- Only register the autocommand if the terminal window is still valid
-            if vim.api.nvim_win_is_valid(new_win) then
-                vim.api.nvim_create_autocmd("TermClose", {
-                    buffer = term_bufnr,
-                    once = true,
-                    callback = function()
-                        if vim.api.nvim_win_is_valid(new_win) then
-                            pcall(vim.api.nvim_set_current_win, new_win)
-                        end
-                    end,
-                })
-            end
-        end, 100)  -- Delay execution by 100ms
-    end
+    vim.cmd('autocmd TermClose * ++once lua vim.api.nvim_set_current_win(' .. new_win .. ')')
 end
-
-_G.setup_term_plugin()
 
 -- Disable line numbers in terminal mode
 function DisableLineNumbers()
