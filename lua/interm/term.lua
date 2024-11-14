@@ -8,36 +8,41 @@ _G.cd_and_open_term = function()
     vim.cmd('autocmd TermClose * ++once lua vim.cmd("cd ' .. original_dir .. '")')
 end
 
-_G.cd_and_open_term_mod = function()
-    local original_win = vim.api.nvim_get_current_win()
-    local original_dir = vim.fn.getcwd()
+_G.setup_term_plugin = function()
+    _G.cd_and_open_term_mod = function()
+        vim.defer_fn(function()
+            local original_win = vim.api.nvim_get_current_win()
+            local original_dir = vim.fn.getcwd()
 
-    vim.cmd('lcd %:p:h')
-    vim.cmd('vsplit')
-    vim.cmd('term')
+            vim.cmd('lcd %:p:h')
+            vim.cmd('vsplit')
+            vim.cmd('term')
 
-    local new_win = vim.api.nvim_get_current_win()
-    local term_bufnr = vim.api.nvim_get_current_buf()
+            local new_win = vim.api.nvim_get_current_win()
+            local term_bufnr = vim.api.nvim_get_current_buf()
 
-    vim.api.nvim_set_current_win(original_win)
-    vim.cmd('lcd ' .. original_dir)
-    vim.api.nvim_set_current_win(new_win)
+            vim.api.nvim_set_current_win(original_win)
+            vim.cmd('lcd ' .. original_dir)
+            vim.api.nvim_set_current_win(new_win)
 
-    -- Only register the autocommand if the terminal window is still valid
-    if vim.api.nvim_win_is_valid(new_win) then
-        vim.api.nvim_create_autocmd("TermClose", {
-            buffer = term_bufnr,  -- Limit to the terminal buffer
-            once = true,  -- Run only once
-            callback = function()
-                -- Check again if the window is still valid
-                if vim.api.nvim_win_is_valid(new_win) then
-                    pcall(vim.api.nvim_set_current_win, new_win)
-                end
-            end,
-        })
+            -- Only register the autocommand if the terminal window is still valid
+            if vim.api.nvim_win_is_valid(new_win) then
+                vim.api.nvim_create_autocmd("TermClose", {
+                    buffer = term_bufnr,
+                    once = true,
+                    callback = function()
+                        if vim.api.nvim_win_is_valid(new_win) then
+                            pcall(vim.api.nvim_set_current_win, new_win)
+                        end
+                    end,
+                })
+            end
+        end, 100)  -- Delay execution by 100ms
     end
 end
-    
+
+_G.setup_term_plugin()
+
 -- Disable line numbers in terminal mode
 function DisableLineNumbers()
     vim.wo.number = false
