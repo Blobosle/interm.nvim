@@ -25,7 +25,7 @@ function M.cd_and_open_term_mod()
     vim.cmd('lcd ' .. original_dir)
     vim.api.nvim_set_current_win(new_win)
 
-    vim.cmd('autocmd TermClose * ++once lua vim.api.nvim_set_current_win(' .. new_win .. ')')
+    -- vim.cmd('autocmd TermClose * ++once lua vim.api.nvim_set_current_win(' .. new_win .. ')')
 end
 
 function M.DisableLineNumbers()
@@ -92,19 +92,19 @@ vim.api.nvim_create_autocmd("TermClose", {
     end,
 })
 
-vim.api.nvim_create_autocmd("TermEnter", {
-    pattern = "*",
-    callback = function()
-        vim.opt.timeoutlen = 200
-    end,
-})
-
-vim.api.nvim_create_autocmd("TermLeave", {
-    pattern = "*",
-    callback = function()
-        vim.opt.timeoutlen = 1000
-    end,
-})
+-- vim.api.nvim_create_autocmd("TermEnter", {
+--     pattern = "*",
+--     callback = function()
+--         vim.opt.timeoutlen = 200
+--     end,
+-- })
+--
+-- vim.api.nvim_create_autocmd("TermLeave", {
+--     pattern = "*",
+--     callback = function()
+--         vim.opt.timeoutlen = 1000
+--     end,
+-- })
 
 return M
 
